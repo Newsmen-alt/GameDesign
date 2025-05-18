@@ -1,0 +1,156 @@
+<html>
+<head>
+    <title>Pong</title>
+    <!-- Simply.js game library -->
+    <script src="https://simplycodingcourses.com/files/simplyjs/simply.js"></script>
+    
+    <!-- Game styling -->
+    <style>
+        /* Dark theme styling */
+        body {
+            background-color: #333;
+            color: white;
+            text-align: center;
+            font-family: Arial;
+        }
+        
+        /* Cool green title */
+        h1 {
+            color: #4CAF50;
+            font-size: 48px;
+        }
+
+        /* Game container */
+        #target {
+            margin: auto;
+            background: #444;
+            width: 800px;
+            height: 600px;
+        }
+    </style>
+
+    <script>
+        // How fast the ball moves
+        var xspeed = 5;
+        var yspeed = 5;
+        
+        // Game sound effects
+        var soundEffect = new Audio('Music/pop.mp3');    // Ball hits paddle
+        var startSound = new Audio('Music/organ.mp3');   // Game starts
+        var gameOverSound = new Audio('Music/doh.mp3');  // Game over
+
+        // This runs when the page loads
+        window.onload = function() {
+            // Start up our game
+            sjs.open("target", 800, 600);
+            startSound.play();
+            
+            // Setup the score counter
+            var score = 0;
+            var score_txt = new sjs.Text("Score: 0", 21, "#4CAF50");
+            score_txt.moveTo(10, 10);
+            
+            // Create top paddle
+            var paddle1 = new sjs.Image("Images/paddle.png");
+            paddle1.type = "paddle";
+            paddle1.setSize(100, 20);
+            paddle1.centerH();
+            paddle1.moveTo(paddle1.x, 30);
+            
+            // Create bottom paddle
+            var paddle2 = new sjs.Image("Images/paddle.png");
+            paddle2.type = "paddle";
+            paddle2.setSize(100, 20);
+            paddle2.centerH();
+            paddle2.moveTo(paddle2.x, 550);
+            
+            // Create the ball
+            var ball = new sjs.Image("Images/spike.png");
+            ball.type = "ball";
+            ball.setSize(50, 50);
+            ball.centerH();
+            ball.moveTo(ball.x, 300);
+            
+            // Main game loop - runs every 20ms
+            setInterval(function() {
+                // Move the ball
+                ball.x += xspeed;
+                ball.y += yspeed;
+                
+                // Bounce off left and right walls
+                if(ball.x < 0 || ball.x > sjs.getWidth() - ball.width) {
+                    xspeed = -xspeed;
+                }
+                
+                // Ball goes past paddle
+                if(ball.y < 0 || ball.y > sjs.getHeight() - ball.height) {
+                    if(score > 0) {
+                        // Game over! Play sound and go to game over screen
+                        gameOverSound.play();
+                        ball.destroy();
+                        localStorage.setItem("finalScore", score);
+                        setTimeout(function() {
+                            window.location = "gameover.html";
+                        }, 1000);
+                    } else {
+                        // First try - just reset the ball
+                        ball.moveTo(sjs.getWidth()/2, sjs.getHeight()/2);
+                        score = 0;
+                        score_txt.setText("Score: " + score);
+                    }
+                }
+            }, 20);
+            
+            // Move paddles with arrow keys
+            sjs.keyDown(LEFT_KEY, function(){
+                // Don't let paddles go off screen
+                if(paddle1.x > 0) paddle1.pushLeft(3);
+                if(paddle2.x > 0) paddle2.pushLeft(3);
+            });
+            
+            sjs.keyDown(RIGHT_KEY, function(){
+                // Don't let paddles go off screen
+                if(paddle1.x < sjs.getWidth() - paddle1.width) paddle1.pushRight(3);
+                if(paddle2.x < sjs.getWidth() - paddle2.width) paddle2.pushRight(3);
+            });
+            
+            // When ball hits a paddle
+            sjs.onHit("ball","paddle", function(ball,paddle){
+                score = score + 1;
+                score_txt.setText("Score: " + score);
+                soundEffect.play();
+                yspeed = -yspeed;  // Reverse ball direction
+            });
+        };
+    </script>
+</head>
+<body>
+    <h1>PONG</h1>
+    <div id="target"></div>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

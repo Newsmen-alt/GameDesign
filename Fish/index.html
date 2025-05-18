@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Fish Game Menu</title>
+    <script src="https://simplycodingcourses.com/files/simplyjs/simply.js"></script>
+    <script>
+        function start(){
+            sjs.open("target", 800, 500);
+            
+            // Title
+            var title = new sjs.Text("FISH GAME", 50, "white");
+            title.centerH();
+            title.moveTo(title.x, 100);
+
+            // Instructions
+            var game_text = new sjs.Text("Use Arrow Keys to Control the Fish", 28, "#fff");
+            game_text.centerH();
+            game_text.moveTo(game_text.x, 200);
+            
+            var game_text2 = new sjs.Text("Eat 20 Fish to Win!", 28, "#fff");
+            game_text2.centerH();
+            game_text2.moveTo(game_text2.x, 240);
+
+            // Start button
+            var startBtn = new sjs.Button("Start Game", function(){
+                window.location = "fish.html";
+            });
+            startBtn.node.style.fontSize = "24px";
+            startBtn.node.style.padding = "10px 30px";
+            startBtn.node.style.backgroundColor = "#4CAF50";
+            startBtn.node.style.border = "none";
+            startBtn.node.style.cursor = "pointer";
+            
+            // Center the button after styling
+            startBtn.centerH();
+            startBtn.moveTo(sjs.getWidth() / 2 - startBtn.node.offsetWidth / 2, 300);
+
+            // Credits
+            var info_text = new sjs.Text("Created By Kaedyn Garfield", 20, "white");
+            info_text.centerH();
+            info_text.moveTo(info_text.x, 450);
+        }
+    </script>
+    <style>
+        body {
+            margin: 0;
+            background-color: #333;
+        }
+        #target {
+            margin: auto;
+            background: #006994;
+        }
+    </style>
+</head>
+<body onload="start()">
+    <div id="target"></div>
+</body>
+</html>
+
+

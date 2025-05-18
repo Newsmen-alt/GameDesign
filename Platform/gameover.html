@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>Game Over</title>
+    <style>
+      body {
+      background: #111;
+      color: #fff;
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      }
+      h1 {
+      font-size: 64px;
+      margin-bottom: 20px;
+      color: red;
+      text-shadow: 2px 2px 0 black;
+      }
+      p {
+      font-size: 24px;
+      margin-bottom: 40px;
+      }
+      .btn {
+      font-size: 18px;
+      padding: 12px 24px;
+      margin: 8px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      background: #333;
+      color: #fff;
+      transition: background 0.3s;
+      }
+      .btn:hover {
+      background: #555;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Game Over</h1>
+    <p>You failed the level. Try again?</p>
+    <button class="btn" onclick="retry()">Retry Level</button>
+    <button class="btn" onclick="goHome()">Back to Level Builder</button>
+    <script>
+      function retry() {
+        window.location.href = "level1.html";
+      }
+      function goHome() {
+        window.location.href = "platform.html";
+      }
+    </script>
+  </body>
+</html>

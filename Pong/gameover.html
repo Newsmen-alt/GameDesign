@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Game Over</title>
+    <!-- Simply.js game library -->
+    <script src="https://simplycodingcourses.com/files/simplyjs/simply.js"></script>
+
+    <!-- Pretty styling for our game over screen -->
+    <style>
+        /* Dark theme for the whole page */
+        body {
+            background-color: #333;
+            color: white;
+            text-align: center;
+            font-family: Arial;
+        }
+        
+        /* Big green game over text */
+        h1 {
+            color: #4CAF50;
+            font-size: 48px;
+        }
+        
+        /* Big score display */
+        .score {
+            font-size: 32px;
+            margin: 20px;
+        }
+        
+        /* Cool green buttons that light up on hover */
+        .button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px 30px;
+            font-size: 24px;
+            text-decoration: none;
+            margin: 10px;
+            display: inline-block;
+        }
+        
+        .button:hover {
+            background-color: #45a049;
+        }
+
+        /* Center everything nicely */
+        #target {
+            margin: auto;
+            width: 800px;
+            height: 600px;
+            padding: 20px;
+        }
+    </style>
+
+    <!-- Sound effects and game logic -->
+    <script>
+        // Load our awesome sound effects
+        var hoverSound = new Audio('Music/organ.mp3');    // Plays when hovering buttons
+        var clickSound = new Audio('Music/techno.mp3');   // Plays when clicking buttons
+
+        // Play a sound when hovering over buttons
+        function playHoverSound() {
+            hoverSound.currentTime = 0;  // Reset sound to start
+            hoverSound.play();
+        }
+
+        // When the page loads, show the final score
+        function start(){
+            sjs.open();
+            var finalScore = localStorage.getItem("finalScore");
+            document.getElementById("score").innerHTML = "Final Score: " + finalScore;
+        }
+
+        // Play click sound and wait a bit before changing pages
+        function playAndRedirect(url) {
+            clickSound.play();
+            setTimeout(function() {
+                window.location = url;
+            }, 1000);  // Wait 1 second before changing pages
+        }
+    </script>
+</head>
+<body onload="start()">
+    <div id="target">
+        <h1>Game Over!</h1>
+        
+        <!-- Help text for sound effects -->
+        <div style="color: #888; margin-bottom: 20px;">
+            Please click empty space to hear the hover and click sounds! :)
+        </div>
+
+        <!-- Show the player's final score -->
+        <div class="score" id="score">Final Score: 0</div>
+        
+        <!-- Navigation buttons with sound effects -->
+        <div class="button" 
+             onmouseover="playHoverSound()" 
+             onclick="playAndRedirect('menu.html')">Main Menu</div>
+        <div class="button" 
+             onmouseover="playHoverSound()" 
+             onclick="playAndRedirect('pong.html')">Play Again</div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,255 @@
+<html>
+  <head>
+    <title>Platform Game</title>
+    <script src="https://simplycodingcourses.com/files/simply.js"></script>
+    <script>
+      var canShoot = false;
+      
+      var level = [[{"width":136,"height":30,"x":185,"y":413,"sx":0,"sy":0,"topSpeed":10,"src":"Images/platform.png","alt":"add text","type":"platform","friction":0.05,"classType":"Image"},{"width":136,"height":30,"x":400,"y":342,"sx":0,"sy":0,"topSpeed":10,"src":"Images/platform.png","alt":"add text","type":"platform","friction":0.05,"classType":"Image"},{"width":136,"height":30,"x":593.6723952819474,"y":211,"sx":0,"sy":0,"topSpeed":10,"src":"Images/platform.png","alt":"add text","type":"platform","friction":0.05,"classType":"Image"},{"width":25,"height":30,"x":322.23528134734613,"y":281,"sx":0,"sy":0,"topSpeed":10,"src":"Images/score.gif","alt":"add text","type":"score","friction":0.05,"classType":"Image"},{"width":25,"height":30,"x":371.23528134734613,"y":59,"sx":0,"sy":0,"topSpeed":10,"src":"Images/score.gif","alt":"add text","type":"score","friction":0.05,"classType":"Image"},{"width":25,"height":30,"x":464.82354834734633,"y":291,"sx":0,"sy":0,"topSpeed":10,"src":"Images/score.gif","alt":"add text","type":"score","friction":0.05,"classType":"Image"},{"width":25,"height":30,"x":658.0321755633679,"y":155,"sx":0,"sy":0,"topSpeed":10,"src":"Images/score.gif","alt":"add text","type":"score","friction":0.05,"classType":"Image"},{"width":81,"height":93,"x":681.2585428202595,"y":407,"sx":-1.5,"sy":1,"ay":1,"topSpeed":10,"src":"Images/l_enemy.gif","alt":"add text","type":"enemy","facingLeft":true,"left_img":"Images/l_enemy.gif","right_img":"Images/r_enemy.gif","friction":0,"classType":"Image","noBounds":true},{"width":136,"height":30,"x":774.7585428202595,"y":355,"sx":0,"sy":0,"topSpeed":10,"src":"Images/platform.png","alt":"add text","type":"platform","friction":0.05,"classType":"Image"},{"width":136,"height":30,"x":399.75854282025955,"y":464,"sx":0,"sy":0,"topSpeed":10,"src":"Images/platform.png","alt":"add text","type":"platform","friction":0.05,"classType":"Image"},{"width":136,"height":30,"x":784.7585428202595,"y":468,"sx":0,"sy":0,"topSpeed":10,"src":"Images/platform.png","alt":"add text","type":"platform","friction":0.05,"classType":"Image"},{"width":21,"height":30,"x":987.1327090809248,"y":417,"sx":0,"sy":0,"topSpeed":10,"src":"Images/power_up.png","alt":"add text","type":"powerUp","friction":0.05,"classType":"Image"},{"width":66,"height":15,"x":1125.1444753999795,"y":464.5,"sx":0,"sy":0,"topSpeed":10,"src":"Images/jump_pad.png","alt":"add text","type":"jump_pad","friction":0.05,"classType":"Image"},{"width":136,"height":30,"x":1261.0434366031266,"y":308,"sx":0,"sy":0,"topSpeed":10,"src":"Images/platform.png","alt":"add text","type":"platform","friction":0.05,"classType":"Image"},{"width":66,"height":15,"x":1527.1411393546439,"y":321.5,"sx":0,"sy":0,"topSpeed":10,"src":"Images/jump_pad.png","alt":"add text","type":"jump_pad","friction":0.05,"classType":"Image"},{"width":136,"height":30,"x":1700.8051404607052,"y":309,"sx":0,"sy":0,"topSpeed":10,"src":"Images/platform.png","alt":"add text","type":"platform","friction":0.05,"classType":"Image"},{"width":31,"height":80,"x":1998.5613388603872,"y":206,"sx":0,"sy":0,"topSpeed":10,"src":"Images/flag_bad.png","alt":"add text","type":"flag","friction":0.05,"classType":"Image"},{"width":136,"height":30,"x":1936.9078427864602,"y":286,"sx":0,"sy":0,"topSpeed":10,"src":"Images/platform.png","alt":"add text","type":"platform","friction":0.05,"classType":"Image"},{"width":81,"height":93,"x":1533.0831383619877,"y":407,"sx":-1.5,"sy":0,"ay":1,"topSpeed":10,"src":"Images/l_enemy.gif","alt":"add text","type":"enemy","facingLeft":true,"left_img":"Images/l_enemy.gif","right_img":"Images/r_enemy.gif","friction":0,"classType":"Image","noBounds":true}]];
+      
+      function start() {
+        sjs.open("target", 800, 500);
+      
+        var background = new sjs.Image("Images/background.png");
+        background.setSize(2500, 500);
+      
+        sjs.loadImageArray(JSON.stringify(level[0]));
+      
+      var playM = new Audio('Music/mad_robots.mp3');
+      var toggle = true;
+      var musicOn = false;
+      sjs.keyDown(SPACE_KEY, function(){
+        if(toggle == true){
+          if(musicOn == false){
+            playM.play();
+            musicOn = true;
+          } else {
+            playM.pause();
+            musicOn = false;
+          }
+          toggle = false;
+          setTimeout(function(){
+            toggle = true;
+          },1000);
+        }
+      });
+      
+      
+        var player = new sjs.Image("Images/r_idle.png");
+        player.type = "player";
+        player.setSize(85, 93);
+        player.setGravity(3);
+        player.bottom();
+        player.friction = 0.3;
+        player.noBounds = true;
+      
+        sjs.scrollable(player, background);
+      
+        var r_images = [], l_images = [];
+        for (var i = 0; i <= 7; i++) {
+          r_images.push(`Images/r_walk-${i}.png`);
+          l_images.push(`Images/l_walk-${i}.png`);
+        }
+      
+        var r_facing = true, r_track = 0, l_track = 0;
+      
+        sjs.keyDown(RIGHT_KEY, function () {
+          r_facing = true;
+          r_track = (r_track + 1) % 8;
+          player.pushRight(2);
+          player.setImage(r_images[r_track]);
+        });
+      
+        sjs.keyDown(LEFT_KEY, function () {
+          r_facing = false;
+          l_track = (l_track + 1) % 8;
+          player.pushLeft(2);
+          player.setImage(l_images[l_track]);
+        });
+      
+        var canJump = true;
+      
+        sjs.keyDown(UP_KEY, function () {
+          if (canJump) {
+            canJump = false;
+            player.pushUp(55);
+            if (r_facing) {
+              player.setImage("Images/r_jump.png");
+            } else {
+              player.setImage("Images/l_jump.png");
+            }
+          }
+        });
+      
+      
+        sjs.keyDown(DOWN_KEY, function(){
+        if(canShoot == true){
+          canShoot = false;
+          var laser = new sjs.Image("Images/laser.png");
+          laser.type = "laser";
+          laser.setSize(100,50);
+          laser.friction= 0;
+          laser.noBounds= true;
+          if(r_facing == true){
+            laser.moveTo(player.getX()+44,player.getY()+7);
+            laser.pushRight(25.5);
+          } else {
+            laser.moveTo(player.getX()-60,player.getY()+7);
+            laser.pushLeft(25.5);
+          }
+          setTimeout(function(){
+            canShoot = true;
+          },1500);
+        }
+      });
+      
+        window.addEventListener("keyup", function(e) {
+          if (e.keyCode == RIGHT_KEY) {
+            player.setImage("Images/r_idle.png");
+            r_track = 0;
+          } else if (e.keyCode == LEFT_KEY) {
+            player.setImage("Images/l_idle.png");
+            l_track = 0;
+          }
+        });
+      
+        sjs.onHit("player", "platform", function(x, y){
+          sjs.stoppedBy(x, y);
+          if (!canJump && x.y < y.y - 85) {
+            canJump = true;
+            r_track = 0;
+            l_track = 0;
+          }
+        });
+      
+        sjs.onHit("player","powerUp", function(x,y){
+          canShoot = true;
+          y.destroy();
+        });
+      
+      
+        sjs.onHit("player", "bottom_screen", function(x, y) {
+          sjs.stoppedBy(x, y);
+          if (!canJump) {
+            canJump = true;
+            r_track = 0;
+            l_track = 0;
+          }
+        });
+      
+      
+        sjs.onHit("enemy","bottom_screen", function(x,y){
+          sjs.stoppedBy(x,y);
+        });
+      
+        sjs.onHit("enemy", ["left_screen","right_screen"], function(x,y){
+          sjs.bounceOff(x,y);
+        });
+      
+        sjs.onHit("enemy","platform", function(x,y){
+          if(x.isAboveOf(y) == true){
+            sjs.stoppedBy(x,y);
+          } else {
+            sjs.bounceOff(x,y);
+          }
+        });
+      
+        // Stop enemy by bottom screen (floor)
+        sjs.onHit("enemy","bottom_screen", function(x,y){
+          sjs.stoppedBy(x,y);
+        });
+      
+        // Bounce enemy off left and right screens (walls)
+        sjs.onHit("enemy",["left_screen","right_screen"], function(x,y){
+          sjs.bounceOff(x,y);
+        });
+      
+        // Enemy on platform: stop if on top, else bounce off side
+        sjs.onHit("enemy","platform", function(x,y){
+          if(x.isAboveOf(y) == true){
+            sjs.stoppedBy(x,y);
+          } else {
+            sjs.bounceOff(x,y);
+          }
+        });
+      
+      
+      
+        sjs.onHit("player", ["right_screen", "left_screen", "top_screen"], function(x, y) {
+          sjs.stoppedBy(x, y);
+        });
+      
+              var score = 0;
+        var score_txt = new sjs.Text("Score: 0", 21, "green");
+        score_txt.right().offset(-20, 0);
+        score_txt.fixed = true;
+      
+        sjs.onHit("player","score", function(x,y){
+          score = score + 1;
+          score_txt.setText("Score :"+ score);
+          localStorage.setItem("score", score);
+          y.destroy();
+        });
+      
+        var flagOn = true;
+        sjs.onHit("player","flag", function(x,y){
+          x.stop();
+          if(flagOn == true){
+            flagOn = false;
+            setTimeout(function(){
+              y.setImage("Images/flag_none.png");
+            }, 800);
+            setTimeout(function(){
+              y.setImage("Images/flag_win.png");
+            }, 1600);
+            setTimeout(function(){
+              window.location = "test.html";
+            }, 2400);
+          }
+        });
+      
+        function jumpPad() {
+          var jump_pad = new sjs.Image("Images/jump_pad.png");
+          level.push(jump_pad);
+          jump_pad.type = "jump_pad";
+          jump_pad.center().offset(-sjs.gx,10);
+          jump_pad.setHeight(15);
+          jump_pad.onMouseDown(function() {
+            jump_pad.draggable();
+            jump_pad.follow(sjs.mouse);
+          });
+        }
+      
+        sjs.onHit("player", "jump_pad", function(x, y){
+          if(x.isAboveOf(y) == true){
+            x.pushUp(50);
+          } else {
+            sjs.stoppedBy(x, y);
+          }
+        });
+      
+        sjs.onHit("player","enemy", function(x,y){
+          x.destroy();
+          window.location = "gameover.html";
+        });
+      
+        sjs.onHit("laser","enemy", function(x,y){
+          x.destroy();
+          y.destroy();
+        });
+      
+        sjs.onHit("laser",["platform","jump_pad", "powerUp","score","flag"], function(x,y){
+          sjs.bounceOff(x,y);
+        });
+      
+        sjs.onHit("laser",["right_screen","left_screen"], function(x,y){
+          x.destroy();
+        });
+      }
+    </script>
+  </head>
+  <body onload="start()">
+    <h1> Platform Game </h1>
+    <div id="target" style="margin:auto;background:grey;"></div>
+  </body>
+</html>

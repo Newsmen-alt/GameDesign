@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Menu - Evil Robots</title>
+    <script src="https://simplycodingcourses.com/files/simplyjs/simply.js"></script>
+    <style>
+      body {
+      background: #111;
+      color: #fff;
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      user-select: none;
+      }
+      h1 {
+      font-size: 64px;
+      margin-bottom: 20px;
+      color: red;
+      text-shadow: 2px 2px 0 black;
+      }
+      #target {
+      margin-top: 30px;
+      background: #222;
+      border-radius: 12px;
+      box-shadow: 0 0 15px #000;
+      width: 800px;
+      height: 500px;
+      position: relative;
+      overflow: hidden;
+      }
+      .btn {
+      font-size: 18px;
+      padding: 12px 24px;
+      margin: 8px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      background: #333;
+      color: #fff;
+      transition: background 0.3s;
+      font-family: 'Segoe UI', sans-serif;
+      box-shadow: 1px 1px 3px #000;
+      }
+      .btn:hover {
+      background: #555;
+      }
+      .menu-text {
+      color: #2196f3;
+      font-weight: bold;
+      text-shadow: 1px 1px 2px black;
+      }
+      .credit {
+      position: absolute;
+      bottom: 10px;
+      width: 100%;
+      text-align: center;
+      color: #666;
+      font-size: 16px;
+      font-style: italic;
+      user-select: text;
+      }
+    </style>
+    <script>
+      function start() {
+        sjs.open("target", 800, 500);
+      
+        sjs.clearStage();
+      
+        var menu_text = new sjs.Text("Evil Robots", 48, "#2196f3");
+        menu_text.centerH().offset(0, 50);
+      
+        var designBtn = new sjs.Button("Design Level", function () {
+          window.location = "platform.html";
+        });
+        designBtn.center().offset(0, 120);
+      
+        var level1Btn = new sjs.Button("Level 1", function () {
+          window.location = "level1.html";
+        });
+        level1Btn.center().offset(0, 180);
+      
+        sjs.addToStage(menu_text);
+        sjs.addToStage(designBtn);
+        sjs.addToStage(level1Btn);
+      
+        sjs.updateStage();
+      
+        var credit = document.createElement("div");
+        credit.className = "credit";
+        credit.textContent = "Created By Kaedyn Garfield";
+        document.getElementById("target").appendChild(credit);
+      }
+    </script>
+  </head>
+  <body onload="start()">
+    <h1>Platform Game</h1>
+    <div id="target"></div>
+  </body>
+</html>

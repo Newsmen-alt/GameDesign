@@ -1,0 +1,106 @@
+<html>
+<head>
+    <title>Pong Menu</title>
+    <!-- Cool sound effects for my buttons -->
+    <script>
+        // Load the sound effects
+        var hoverSound = new Audio('Music/organ.mp3');    // Plays when hovering buttons
+        var clickSound = new Audio('Music/techno.mp3');   // Plays when clicking buttons
+
+        // Play a sound when hovering over buttons
+        function playHoverSound() {
+            hoverSound.currentTime = 0;  // Reset sound to start
+            hoverSound.play();
+        }
+
+        // Play click sound and wait a bit before changing pages
+        function playAndRedirect(url) {
+            clickSound.play();
+            setTimeout(function() {
+                window.location = url;
+            }, 1000);  // Wait 1 second before changing pages
+        }
+    </script>
+
+    <!-- Styling for my menu -->
+    <style>
+        /* Dark theme for the whole page */
+        body {
+            background-color: #333;
+            color: white;
+            text-align: center;
+            font-family: Arial;
+        }
+        
+        /* Big green title at the top */
+        h1 {
+            color: #4CAF50;
+            font-size: 48px;
+        }
+        
+        /* Gray box for game instructions */
+        .instructions {
+            background-color: #444;
+            padding: 20px;
+            margin: 20px;
+            text-align: center;
+        }
+        
+        /* Remove bullet points from instructions list */
+        .instructions ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        /* Cool green button that lights up on hover */
+        .play-button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px 30px;
+            font-size: 24px;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        
+        .play-button:hover {
+            background-color: #45a049;
+        }
+        
+        /* Creator credit at bottom */
+        .creator {
+            color: #888;
+            margin-top: 100px;
+        }
+    </style>
+</head>
+<body>
+    <h1>PONG</h1>
+    
+    <!-- Help text for sound effects -->
+    <div style="color: #888; margin-bottom: 20px;">
+        Please click empty space to hear the hover and click sounds! :)
+    </div>
+    
+    <!-- Game instructions box -->
+    <div class="instructions">
+        <h2>How to Play:</h2>
+        <ul>
+            <li>- Use the LEFT and RIGHT arrow keys to move both paddles</li>
+            <li>- Keep the ball from going past ymy paddle</li>
+            <li>- Each successful hit increases ymy score</li>
+            <li>- If you miss the ball, ymy score resets to 0</li>
+            <li>- Try to get the highest score possible!</li>
+        </ul>
+    </div>
+    
+    <!-- Play button with sound effects -->
+    <div class="play-button" 
+         onmouseover="playHoverSound()" 
+         onclick="playAndRedirect('pong.html')">PLAY PONG</div>
+    
+    <!-- Credit at the bottom -->
+    <div class="creator">
+        Created by Kaedyn
+    </div>
+</body>
+</html>
