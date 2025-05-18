@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Car Merge with Finish Line & Earnings</title>
+  <style>
+    body {
+      margin: 0; background: #222; color: #eee; font-family: monospace;
+      display: flex; height: 100vh; overflow: hidden;
+    }
+    #game {
+      background: #111; border-radius: 50%;
+      box-shadow: 0 0 20px #f05a28;
+      flex-shrink: 0;
+      margin: auto;
+    }
+    #sidebar {
+      width: 320px; background: #333; padding: 15px;
+      box-sizing: border-box;
+      display: flex; flex-direction: column;
+      user-select: none;
+    }
+    #currency {
+      font-size: 1.6em; margin-bottom: 15px; text-align: center;
+    }
+    #description {
+      font-size: 0.9em; line-height: 1.3em; margin-bottom: 20px;
+      color: #bbb;
+      user-select: text;
+    }
+    #buy-car {
+      padding: 14px; font-size: 1.2em;
+      margin-bottom: 20px;
+      background: #f05a28; border: none; color: white;
+      cursor: pointer; border-radius: 6px;
+      transition: background 0.3s;
+    }
+    #buy-car:disabled {
+      background: #a03b1a; cursor: not-allowed;
+    }
+    #car-list {
+      flex-grow: 1; overflow-y: auto;
+      border: 2px solid #444; padding: 8px; background: #222;
+      display: flex; flex-direction: column; gap: 12px;
+    }
+    .car {
+      background: #555; padding: 14px 18px;
+      border-radius: 8px;
+      cursor: grab; color: white;
+      font-weight: bold;
+      display: flex; flex-direction: column;
+      user-select: none;
+      width: 280px;
+      box-sizing: border-box;
+      border: 2px solid transparent;
+      transition: border-color 0.2s ease;
+      position: relative;
+    }
+    .car.dragging {
+      opacity: 0.5;
+    }
+    .car.over {
+      border-color: #f05a28;
+    }
+    .car-top-row {
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .car-level {
+      font-size: 1.3em;
+    }
+    .car-color-box {
+      width: 28px; height: 28px;
+      border-radius: 5px;
+      border: 2px solid white;
+      flex-shrink: 0;
+      margin-left: 10px;
+    }
+    .car-info {
+      font-size: 0.85em;
+      color: #ccc;
+      margin-top: 6px;
+      user-select: none;
+      display: flex; justify-content: space-between;
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="game" width="500" height="500"></canvas>
+<div id="sidebar">
+  <div id="currency">Currency: 0</div>
+  <div id="description">
+    Drag and merge cars of the same level to upgrade.<br />
+    Cars race around the track and earn money every time they cross the finish line.<br />
+    Merge costs increase as cars get stronger.<br />
+    Buy more cars to build your racing empire!
+  </div>
+  <button id="buy-car">Buy Car (Cost: 100)</button>
+  <div id="car-list"></div>
+</div>
+
+<script>
+(() => {
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const center = { x: W/2, y: H/2 };
+  const trackRadius = 200;
+  const finishAngleRaw = 0;  // 3 o'clock
+  const finishAngle = (finishAngleRaw + 2 * Math.PI) % (2 * Math.PI);
+
+
+  class Car {
+    constructor(level = 1) {
+      this.level = level;
+      this.angle = Math.random() * Math.PI * 2;
+      this.id = Car.nextId++;
+      this.color = Car.colors[this.id % Car.colors.length];
+      this.lapsCompleted = 0;
+    }
+    speed() {
+      // Speed is base 0.002 radians/ms plus 0.5 speed per level upgrade
+      return 0.002 * (1 + (this.level - 1) * 0.5);
+    }
+    incomePerLap() {
+      return 50 * this.level;
+    }
+    lapTimeMs() {
+      // Lap is full circle = 2*PI radians
+      // speed is radians/ms so lapTime = 2pi / speed
+      return (2 * Math.PI) / this.speed();
+    }
+    incomePerSecond() {
+      return this.incomePerLap() / (this.lapTimeMs() / 1000);
+    }
+    getPosition() {
+      return {
+        x: center.x + trackRadius * Math.cos(this.angle),
+        y: center.y + trackRadius * Math.sin(this.angle),
+      };
+    }
+    draw(ctx) {
+      const pos = this.getPosition();
+      ctx.save();
+      ctx.translate(pos.x, pos.y);
+      ctx.rotate(this.angle + Math.PI / 2);
+      ctx.fillStyle = this.color;
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(0, -15);
+      ctx.lineTo(10, 15);
+      ctx.lineTo(-10, 15);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 14px monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(`Lvl ${this.level}`, 0, 5);
+      ctx.restore();
+    }
+  }
+  Car.nextId = 0;
+  Car.colors = ['#f05a28','#3a8fff','#f0f028','#28f05a','#f028f0','#28f0f0'];
+
+  // --- Game state ---
+  let cars = [];
+  let currency = 500;
+  let carBaseCost = 100;
+
+  const currencyEl = document.getElementById('currency');
+  const buyBtn = document.getElementById('buy-car');
+  const carListEl = document.getElementById('car-list');
+
+  function updateCurrencyUI() {
+    currencyEl.textContent = `Currency: ${Math.floor(currency)}`;
+    buyBtn.textContent = `Buy Car (Cost: ${carBaseCost})`;
+    buyBtn.disabled = currency < carBaseCost;
+  }
+
+  function mergeCost(level) {
+    return Math.floor(1.5 * carBaseCost * level);
+  }
+
+  function renderCarList() {
+    carListEl.innerHTML = '';
+    cars.forEach((car, index) => {
+      const div = document.createElement('div');
+      div.className = 'car';
+      div.setAttribute('draggable', true);
+      div.dataset.id = car.id;
+      div.dataset.index = index;
+
+      // Top row: level and color box
+      const topRow = document.createElement('div');
+      topRow.className = 'car-top-row';
+
+      const levelSpan = document.createElement('span');
+      levelSpan.className = 'car-level';
+      levelSpan.textContent = `Lvl ${car.level}`;
+
+      const colorBox = document.createElement('div');
+      colorBox.className = 'car-color-box';
+      colorBox.style.backgroundColor = car.color;
+
+      topRow.appendChild(levelSpan);
+      topRow.appendChild(colorBox);
+
+      // Info row: merge cost, per lap income, per second income
+      const infoRow = document.createElement('div');
+      infoRow.className = 'car-info';
+
+      const mergeText = document.createElement('span');
+      mergeText.textContent = `Merge Cost: $${mergeCost(car.level)}`;
+
+      const incomeText = document.createElement('span');
+      incomeText.textContent = `$${car.incomePerLap()} / lap`;
+
+      const perSecText = document.createElement('span');
+      // Round to 2 decimals for $/s
+      perSecText.textContent = `$${car.incomePerSecond().toFixed(2)} / s`;
+
+      infoRow.appendChild(mergeText);
+      infoRow.appendChild(incomeText);
+      infoRow.appendChild(perSecText);
+
+      div.appendChild(topRow);
+      div.appendChild(infoRow);
+
+      carListEl.appendChild(div);
+
+      // Drag handlers
+      div.addEventListener('dragstart', e => {
+        e.dataTransfer.setData('text/plain', index);
+        div.classList.add('dragging');
+      });
+      div.addEventListener('dragend', e => {
+        div.classList.remove('dragging');
+        clearDragOverStyles();
+      });
+      div.addEventListener('dragover', e => {
+        e.preventDefault();
+        if (div !== dragSource) {
+          div.classList.add('over');
+        }
+      });
+      div.addEventListener('dragleave', e => {
+        div.classList.remove('over');
+      });
+      div.addEventListener('drop', e => {
+        e.preventDefault();
+        const sourceIndex = parseInt(e.dataTransfer.getData('text/plain'));
+        const targetIndex = parseInt(div.dataset.index);
+        if (sourceIndex === targetIndex) return;
+
+        const sourceCar = cars[sourceIndex];
+        const targetCar = cars[targetIndex];
+
+        const cost = mergeCost(sourceCar.level);
+        if (sourceCar.level === targetCar.level && currency >= cost) {
+          currency -= cost;
+
+          // Remove source and target, insert upgraded car
+          cars.splice(sourceIndex, 1);
+          let insertAt = targetIndex;
+          if (sourceIndex < targetIndex) insertAt--;
+          cars.splice(insertAt, 1);
+
+          const newCar = new Car(sourceCar.level + 1);
+          cars.splice(insertAt, 0, newCar);
+
+          updateCurrencyUI();
+          renderCarList();
+        }
+        clearDragOverStyles();
+      });
+    });
+  }
+
+  function clearDragOverStyles() {
+    [...carListEl.children].forEach(div => div.classList.remove('over'));
+  }
+
+  buyBtn.addEventListener('click', () => {
+    if (currency >= carBaseCost) {
+      currency -= carBaseCost;
+      carBaseCost = Math.floor(carBaseCost * 1.3);
+      cars.push(new Car(1));
+      updateCurrencyUI();
+      renderCarList();
+    }
+  });
+
+  // Draw track and finish line
+  function drawTrack() {
+    ctx.clearRect(0, 0, W, H);
+
+    // Outer track
+    ctx.lineWidth = 15;
+    ctx.strokeStyle = '#444';
+    ctx.shadowColor = '#f05a28';
+    ctx.shadowBlur = 12;
+    ctx.beginPath();
+    ctx.arc(center.x, center.y, trackRadius, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    // Inner track
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = '#888';
+    ctx.beginPath();
+    ctx.arc(center.x, center.y, trackRadius - 25, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Finish line: thick red line at finishAngle
+    ctx.lineWidth = 6;
+    ctx.strokeStyle = '#f05a28';
+    ctx.beginPath();
+    const lineLength = 40;
+    const x1 = center.x + (trackRadius + 20) * Math.cos(finishAngle);
+    const y1 = center.y + (trackRadius + 20) * Math.sin(finishAngle);
+    const x2 = center.x + (trackRadius - 20) * Math.cos(finishAngle);
+    const y2 = center.y + (trackRadius - 20) * Math.sin(finishAngle);
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+  }
+
+  // Update cars position and detect lap completion crossing only finish line
+  let lastTime = performance.now();
+  function update() {
+
+    
+    const now = performance.now();
+    const dt = now - lastTime;
+    lastTime = now;
+
+    for (const car of cars) {
+      // Move car angle
+      let oldAngle = car.angle;
+      car.angle += car.speed() * dt;
+      if (car.angle > Math.PI * 2) car.angle -= Math.PI * 2;
+
+      // Detect crossing finish line (angle passed from > finishAngle to <= finishAngle)
+      // Because angles wrap around, normalize old and new angle in 0 to 2pi
+      const normOld = (oldAngle + Math.PI * 2) % (Math.PI * 2);
+      const normNew = (car.angle + Math.PI * 2) % (Math.PI * 2);
+      const normFinish = (finishAngle + Math.PI * 2) % (Math.PI * 2);
+
+        if (normOld > normNew) {
+        // Wrapped around 2PI -> 0, lap completed
+        currency += car.incomePerLap();
+        }
+
+    }
+
+    updateCurrencyUI();
+  }
+
+  function draw() {
+    drawTrack();
+    for (const car of cars) {
+      car.draw(ctx);
+    }
+  }
+
+  function loop() {
+    update();
+    draw();
+    requestAnimationFrame(loop);
+  }
+
+  // Initial setup
+  updateCurrencyUI();
+  renderCarList();
+  loop();
+
+})();
+</script>
+
+</body>
+</html>
